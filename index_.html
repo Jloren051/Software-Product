@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TicketFlow — Venda de Ingressos</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --panel2:#0c172d;
+      --text:#e8eeff;
+      --muted:#9fb0d6;
+      --line:#1f2f55;
+      --brand:#6ea8ff;
+      --ok:#2ee59d;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(900px 700px at 20% -10%, rgba(110,168,255,.22), transparent 60%),
+                  radial-gradient(900px 700px at 110% 10%, rgba(46,229,157,.12), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{ color:inherit; text-decoration:none; }
+    button, input, select{ font:inherit; }
+    .container{ max-width:1100px; margin:0 auto; padding:18px; }
+
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:20;
+      background: rgba(11,18,32,.72);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(31,47,85,.6);
+    }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 0;
+    }
+    .logo{
+      width:36px; height:36px;
+      border-radius:12px;
+      background: linear-gradient(135deg, rgba(110,168,255,1), rgba(46,229,157,1));
+      box-shadow: 0 10px 30px rgba(110,168,255,.22);
+    }
+    .brand h1{ font-size:16px; margin:0; letter-spacing:.2px; }
+    .brand p{ margin:0; color:var(--muted); font-size:12px; }
+
+    .nav{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding:9px 12px;
+      border:1px solid rgba(31,47,85,.9);
+      background: rgba(15,27,51,.7);
+      border-radius:999px;
+      color:var(--text);
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .chip:hover{ transform: translateY(-1px); border-color: rgba(110,168,255,.8); background: rgba(15,27,51,.95); }
+    .chip.primary{ border-color: rgba(110,168,255,.7); }
+    .chip.danger{ border-color: rgba(255,107,107,.55); }
+    .chip .dot{
+      width:8px; height:8px; border-radius:99px; background: var(--brand);
+      box-shadow: 0 0 0 3px rgba(110,168,255,.18);
+    }
+
+    /* Layout */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1fr 360px; align-items:start; }
+      .sideDock{ display:block; }
+    }
+    @media (max-width: 919px){
+      .sideDock{ display:none; }
+    }
+
+    /* Panels */
+    .panel{
+      background: linear-gradient(180deg, rgba(15,27,51,.85), rgba(12,23,45,.85));
+      border:1px solid rgba(31,47,85,.75);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panelHeader{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(31,47,85,.75);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .panelHeader h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .panelHeader small{ color:var(--muted); }
+    .panelBody{ padding:16px; }
+
+    /* Cards */
+    .cards{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width: 680px){
+      .cards{ grid-template-columns: 1fr 1fr; }
+    }
+    .card{
+      border:1px solid rgba(31,47,85,.75);
+      background: rgba(15,27,51,.55);
+      border-radius: 16px;
+      padding:14px;
+      display:flex; flex-direction:column; gap:10px;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .card:hover{ transform: translateY(-1px); border-color: rgba(110,168,255,.65); background: rgba(15,27,51,.75); }
+    .cardTitle{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .cardTitle h3{ margin:0; font-size:15px; }
+    .badge{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(31,47,85,.9);
+      color:var(--muted);
+      background: rgba(12,23,45,.6);
+      white-space:nowrap;
+    }
+    .meta{ display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+    .meta span{ display:inline-flex; align-items:center; gap:8px; }
+    .meta i{ width:8px; height:8px; border-radius:99px; background: rgba(110,168,255,.85); box-shadow: 0 0 0 3px rgba(110,168,255,.12); }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:2px; }
+    .btn{
+      cursor:pointer;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(31,47,85,.9);
+      background: rgba(12,23,45,.7);
+      color:var(--text);
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      min-height: 40px;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(110,168,255,.75); background: rgba(12,23,45,.92); }
+    .btn.primary{ border-color: rgba(110,168,255,.75); background: rgba(110,168,255,.12); }
+    .btn.success{ border-color: rgba(46,229,157,.65); background: rgba(46,229,157,.10); }
+    .btn.danger{ border-color: rgba(255,107,107,.6); background: rgba(255,107,107,.08); }
+    .btn.full{ width:100%; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+    /* Forms */
+    .form{
+      display:grid;
+      gap:12px;
+      max-width:520px;
+    }
+    .field{
+      display:grid;
+      gap:8px;
+    }
+    .field label{ font-size:12px; color:var(--muted); }
+    .input{
+      padding:11px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(31,47,85,.85);
+      background: rgba(8,14,26,.65);
+      color: var(--text);
+      outline:none;
+    }
+    .input:focus{ border-color: rgba(110,168,255,.75); box-shadow: 0 0 0 4px rgba(110,168,255,.10); }
+    .help{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+    .notice{
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(31,47,85,.85);
+      background: rgba(12,23,45,.6);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .notice.ok{ border-color: rgba(46,229,157,.55); color: rgba(200,255,236,.92); background: rgba(46,229,157,.10); }
+    .notice.bad{ border-color: rgba(255,107,107,.55); color: rgba(255,230,230,.92); background: rgba(255,107,107,.10); }
+
+    /* Cart drawer (mobile) */
+    .drawerBackdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      z-index:50;
+      display:none;
+    }
+    .drawer{
+      position:fixed;
+      right:0; top:0; height:100%; width:min(420px, 92vw);
+      background: linear-gradient(180deg, rgba(15,27,51,.98), rgba(12,23,45,.98));
+      border-left:1px solid rgba(31,47,85,.75);
+      box-shadow: var(--shadow);
+      z-index:60;
+      transform: translateX(102%);
+      transition: transform .18s ease;
+      display:grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .drawer.open{ transform: translateX(0); }
+    .drawerBackdrop.open{ display:block; }
+    .drawerHeader{ padding:14px 16px; border-bottom:1px solid rgba(31,47,85,.75); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .drawerHeader strong{ font-size:14px; }
+    .drawerBody{ padding:14px 16px; overflow:auto; }
+    .drawerFooter{ padding:14px 16px; border-top:1px solid rgba(31,47,85,.75); }
+
+    .cartList{ display:grid; gap:10px; }
+    .cartItem{
+      border:1px solid rgba(31,47,85,.75);
+      background: rgba(8,14,26,.55);
+      border-radius: 14px;
+      padding:12px;
+      display:grid;
+      gap:10px;
+    }
+    .cartTop{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .cartTop strong{ font-size:13px; }
+    .cartTop small{ color:var(--muted); }
+    .qtyRow{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .qty{
+      display:flex; align-items:center; gap:8px;
+      border:1px solid rgba(31,47,85,.85);
+      border-radius: 12px;
+      padding:6px 8px;
+      background: rgba(12,23,45,.55);
+    }
+    .qty button{
+      width:32px; height:32px;
+      border-radius: 10px;
+      border:1px solid rgba(31,47,85,.85);
+      background: rgba(8,14,26,.65);
+      color:var(--text);
+      cursor:pointer;
+    }
+    .qty span{ min-width:18px; text-align:center; }
+    .price{ color: rgba(200,255,236,.92); font-weight: 650; }
+
+    .split{
+      display:flex; justify-content:space-between; gap:10px;
+      font-size:12px; color:var(--muted);
+      padding-top:10px; margin-top:10px;
+      border-top:1px dashed rgba(31,47,85,.75);
+    }
+    .split strong{ color:var(--text); }
+
+    .pillRow{ display:flex; gap:8px; flex-wrap:wrap; }
+    .pill{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(31,47,85,.85);
+      background: rgba(8,14,26,.55);
+      color: var(--muted);
+    }
+
+    .hr{ height:1px; background: rgba(31,47,85,.75); margin:12px 0; }
+
+    /* Tickets list */
+    .ticketGroup{ display:grid; gap:12px; }
+    .ticketItem{
+      border:1px solid rgba(31,47,85,.75);
+      background: rgba(8,14,26,.55);
+      border-radius: 16px;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .ticketItem header{ position:static; background:transparent; backdrop-filter:none; border:0; }
+    .ticketHeader{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .ticketHeader strong{ font-size:14px; }
+    .ticketHeader small{ color:var(--muted); }
+    .tag{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(31,47,85,.85);
+      background: rgba(12,23,45,.55);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .tag.ok{ border-color: rgba(46,229,157,.55); color: rgba(200,255,236,.92); background: rgba(46,229,157,.10); }
+    .tag.bad{ border-color: rgba(255,107,107,.55); color: rgba(255,230,230,.92); background: rgba(255,107,107,.10); }
+    .footerNote{ color:var(--muted); font-size:12px; padding:18px 0; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container topbar">
+      <div class="brand" role="button" tabindex="0" onclick="App.go('eventos')">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>TicketFlow</h1>
+          <p>Venda de ingressos (demo front-end)</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Ações">
+        <button class="chip" id="btnCart" type="button" onclick="App.toggleCart(true)">
+          <span class="dot" aria-hidden="true"></span>
+          Carrinho <span id="cartCount">(0)</span>
+        </button>
+
+        <button class="chip" id="btnMyTickets" type="button" onclick="App.go('meus_ingressos')" style="display:none;">
+          Meus ingressos
+        </button>
+
+        <button class="chip primary" id="btnLogin" type="button" onclick="App.go('login')">Login</button>
+        <button class="chip" id="btnSignup" type="button" onclick="App.go('cadastro')">Cadastro</button>
+
+        <button class="chip danger" id="btnLogout" type="button" onclick="Auth.logout()" style="display:none;">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section class="panel" aria-live="polite">
+        <div class="panelHeader">
+          <div>
+            <h2 id="screenTitle">Eventos</h2>
+            <small id="screenSubtitle">Escolha um evento e compre seus ingressos</small>
+          </div>
+          <div class="pillRow" id="userPills"></div>
+        </div>
+        <div class="panelBody" id="view"></div>
+      </section>
+
+      <!-- Carrinho (dock desktop) -->
+      <aside class="panel sideDock" aria-label="Carrinho (desktop)">
+        <div class="panelHeader">
+          <h2>Carrinho</h2>
+          <small id="cartSideHint">Itens adicionados</small>
+        </div>
+        <div class="panelBody" id="cartSide"></div>
+      </aside>
+    </div>
+
+    <p class="footerNote">
+      * Este projeto é uma simulação (sem back-end). Usuários, carrinho e compras ficam salvos no <strong>localStorage</strong>.
+    </p>
+  </main>
+
+  <!-- Drawer do carrinho (mobile) -->
+  <div class="drawerBackdrop" id="drawerBackdrop" onclick="App.toggleCart(false)"></div>
+  <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Carrinho">
+    <div class="drawerHeader">
+      <strong>Carrinho</strong>
+      <button class="btn" type="button" onclick="App.toggleCart(false)">Fechar</button>
+    </div>
+    <div class="drawerBody" id="cartDrawer"></div>
+    <div class="drawerFooter" id="cartDrawerFooter"></div>
+  </div>
+
+  <script>
+    const Store = {
+      get(key, fallback){
+        try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch{ return fallback; }
+      },
+      set(key, value){
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    };
+
+    const Util = {
+      money(v){ return (v || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" }); },
+      uid(prefix="id"){ return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); },
+      fmtDate(iso){
+        const d = new Date(iso);
+        const dd = String(d.getDate()).padStart(2,"0");
+        const mm = String(d.getMonth()+1).padStart(2,"0");
+        const yy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2,"0");
+        const mi = String(d.getMinutes()).padStart(2,"0");
+        return `${dd}/${mm}/${yy} ${hh}:${mi}`;
+      },
+      todayISO(){
+        const n = new Date();
+        const pad = (x) => String(x).padStart(2,"0");
+        return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+      },
+      isPast(eventISO){
+        const now = new Date();
+        return new Date(eventISO).getTime() < now.getTime();
+      }
+    };
+
+    const Seed = {
+      ensure(){
+        const existing = Store.get("tf_events", null);
+        if(existing && Array.isArray(existing) && existing.length) return;
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+
+        const events = [
+          {
+            id:"ev_aurora",
+            title:"Festival Aurora",
+            place:"Espaço Vibra — São Paulo",
+            date: new Date(y, m, 10, 20, 0).toISOString(),
+            description:"Uma noite de música e experiências imersivas.",
+            tickets:[
+              { id:"t_pista", name:"Pista", price: 90 },
+              { id:"t_vip", name:"VIP", price: 180 },
+              { id:"t_meia", name:"Meia-entrada", price: 45 }
+            ]
+          },
+          {
+            id:"ev_techtalk",
+            title:"TechTalk: IA na prática",
+            place:"Centro de Convenções",
+            date: new Date(y, m, 22, 19, 30).toISOString(),
+            description:"Palestras rápidas, networking e cases reais.",
+            tickets:[
+              { id:"t_lote1", name:"Lote 1", price: 60 },
+              { id:"t_lote2", name:"Lote 2", price: 80 },
+              { id:"t_estudante", name:"Estudante", price: 40 }
+            ]
+          },
+          {
+            id:"ev_classic",
+            title:"Clássicos ao Vivo",
+            place:"Teatro Municipal",
+            date: new Date(y, m-1, 25, 20, 0).toISOString(),
+            description:"Concerto especial com repertório clássico.",
+            tickets:[
+              { id:"t_plateia", name:"Plateia", price: 120 },
+              { id:"t_balcao", name:"Balcão", price: 70 }
+            ]
+          }
+        ];
+
+        Store.set("tf_events", events);
+        Store.set("tf_users", []);
+        Store.set("tf_session", { userId:null });
+        Store.set("tf_cart", []);
+        Store.set("tf_orders", []);
+      }
+    };
+
+    const Auth = {
+      session(){ return Store.get("tf_session", { userId:null }); },
+      currentUser(){
+        const s = Auth.session();
+        if(!s.userId) return null;
+        const users = Store.get("tf_users", []);
+        return users.find(u => u.id === s.userId) || null;
+      },
+      signup({ name, email, password }){
+        const users = Store.get("tf_users", []);
+        const normalized = String(email || "").trim().toLowerCase();
+        if(!name || !normalized || !password) return { ok:false, msg:"Preencha todos os campos." };
+        if(users.some(u => u.email === normalized)) return { ok:false, msg:"Esse e-mail já está cadastrado." };
+        const user = { id: Util.uid("user"), name: String(name).trim(), email: normalized, password: String(password) };
+        users.push(user);
+        Store.set("tf_users", users);
+        Store.set("tf_session", { userId: user.id });
+        return { ok:true, msg:"Cadastro realizado! Você já está logada(o)." };
+      },
+      login({ email, password }){
+        const users = Store.get("tf_users", []);
+        const normalized = String(email || "").trim().toLowerCase();
+        const user = users.find(u => u.email === normalized && u.password === String(password));
+        if(!user) return { ok:false, msg:"E-mail ou senha inválidos." };
+        Store.set("tf_session", { userId: user.id });
+        return { ok:true, msg:"Login realizado com sucesso!" };
+      },
+      logout(){
+        Store.set("tf_session", { userId:null });
+        App.render();
+        App.go("eventos");
+        App.toast("Você saiu da conta.");
+      }
+    };
+
+    const Cart = {
+      list(){ return Store.get("tf_cart", []); },
+      set(items){ Store.set("tf_cart", items); App.renderCart(); App.renderHeader(); },
+      clear(){ Cart.set([]); },
+      add({ eventId, ticketId, qty }){
+        const items = Cart.list();
+        const q = Math.max(1, Number(qty || 1));
+        const i = items.find(x => x.eventId === eventId && x.ticketId === ticketId);
+        if(i) i.qty += q; else items.push({ id: Util.uid("ci"), eventId, ticketId, qty: q });
+        Cart.set(items);
+        App.toast("Adicionado ao carrinho.");
+      },
+      updateQty(itemId, qty){
+        const items = Cart.list();
+        const i = items.find(x => x.id === itemId);
+        if(!i) return;
+        i.qty = Math.max(1, Number(qty || 1));
+        Cart.set(items);
+      },
+      remove(itemId){
+        const items = Cart.list().filter(x => x.id !== itemId);
+        Cart.set(items);
+      },
+      count(){ return Cart.list().reduce((a,b) => a + (b.qty || 0), 0); },
+      details(){
+        const events = Store.get("tf_events", []);
+        const items = Cart.list();
+        return items.map(it => {
+          const ev = events.find(e => e.id === it.eventId);
+          const tk = ev ? ev.tickets.find(t => t.id === it.ticketId) : null;
+          const unit = tk ? tk.price : 0;
+          return { ...it, event: ev, ticket: tk, unit, total: unit * (it.qty || 0) };
+        });
+      },
+      totals(){
+        const d = Cart.details();
+        const subtotal = d.reduce((a,b) => a + b.total, 0);
+        const taxa = subtotal > 0 ? Math.round(subtotal * 0.07 * 100)/100 : 0;
+        const total = subtotal + taxa;
+        return { subtotal, taxa, total };
+      }
+    };
+
+    const Orders = {
+      list(){ return Store.get("tf_orders", []); },
+      create({ userId, payment }){
+        const user = Auth.currentUser();
+        if(!user || user.id !== userId) return { ok:false, msg:"Faça login para finalizar a compra." };
+
+        const items = Cart.details();
+        if(!items.length) return { ok:false, msg:"Seu carrinho está vazio." };
+
+        const { subtotal, taxa, total } = Cart.totals();
+        const order = {
+          id: Util.uid("order"),
+          userId,
+          createdAt: new Date().toISOString(),
+          payment: { ...payment, last4: String(payment.cardNumber || "").slice(-4) },
+          items: items.map(i => ({ eventId: i.eventId, ticketId: i.ticketId, qty: i.qty, unit: i.unit })),
+          subtotal, taxa, total
+        };
+
+        const orders = Orders.list();
+        orders.unshift(order);
+        Store.set("tf_orders", orders);
+        Cart.clear();
+        return { ok:true, msg:"Compra aprovada! Ingressos disponíveis em 'Meus ingressos'." };
+      },
+      forUser(userId){
+        return Orders.list().filter(o => o.userId === userId);
+      }
+    };
+
+    const App = {
+      state: {
+        route: "eventos",
+        selectedEventId: null,
+        toastTimer: null
+      },
+
+      go(route, params={}){
+        App.state.route = route;
+        if(params.eventId) App.state.selectedEventId = params.eventId;
+        window.scrollTo({ top:0, behavior:"smooth" });
+        App.render();
+      },
+
+      toggleCart(open){
+        const backdrop = document.getElementById("drawerBackdrop");
+        const drawer = document.getElementById("drawer");
+        if(open){ backdrop.classList.add("open"); drawer.classList.add("open"); App.renderCart(); }
+        else{ backdrop.classList.remove("open"); drawer.classList.remove("open"); }
+      },
+
+      toast(msg, type="ok"){
+        const view = document.getElementById("view");
+        const el = document.createElement("div");
+        el.className = "notice " + (type === "bad" ? "bad" : "ok");
+        el.textContent = msg;
+        el.style.position = "fixed";
+        el.style.left = "50%";
+        el.style.bottom = "18px";
+        el.style.transform = "translateX(-50%)";
+        el.style.zIndex = "99";
+        el.style.maxWidth = "680px";
+        el.style.width = "calc(100% - 36px)";
+        document.body.appendChild(el);
+        clearTimeout(App.state.toastTimer);
+        App.state.toastTimer = setTimeout(() => el.remove(), 2200);
+      },
+
+      renderHeader(){
+        const user = Auth.currentUser();
+        const btnLogin = document.getElementById("btnLogin");
+        const btnSignup = document.getElementById("btnSignup");
+        const btnLogout = document.getElementById("btnLogout");
+        const btnMyTickets = document.getElementById("btnMyTickets");
+
+        if(user){
+          btnLogin.style.display = "none";
+          btnSignup.style.display = "none";
+          btnLogout.style.display = "inline-flex";
+          btnMyTickets.style.display = "inline-flex";
+        } else {
+          btnLogin.style.display = "inline-flex";
+          btnSignup.style.display = "inline-flex";
+          btnLogout.style.display = "none";
+          btnMyTickets.style.display = "none";
+        }
+
+        document.getElementById("cartCount").textContent = `(${Cart.count()})`;
+
+        const pills = document.getElementById("userPills");
+        pills.innerHTML = "";
+        if(user){
+          const p1 = document.createElement("span"); p1.className = "pill"; p1.textContent = `Olá, ${user.name}`;
+          const p2 = document.createElement("span"); p2.className = "pill"; p2.textContent = user.email;
+          pills.appendChild(p1); pills.appendChild(p2);
+        } else {
+          const p = document.createElement("span"); p.className = "pill"; p.textContent = "Visitante (não logado)";
+          pills.appendChild(p);
+        }
+      },
+
+      renderCart(){
+        const details = Cart.details();
+        const totals = Cart.totals();
+
+        const cartHTML = (isDrawer=false) => {
+          if(!details.length){
+            return `<div class="notice">Seu carrinho está vazio. Volte nos eventos e adicione ingressos.</div>`;
+          }
+
+          const rows = details.map(i => `
+            <div class="cartItem">
+              <div class="cartTop">
+                <div>
+                  <strong>${i.event ? i.event.title : "Evento"}</strong><br/>
+                  <small>${i.ticket ? i.ticket.name : "Ingresso"} • ${i.event ? Util.fmtDate(i.event.date) : ""}</small>
+                </div>
+                <button class="btn danger" type="button" onclick="Cart.remove('${i.id}')">Remover</button>
+              </div>
+
+              <div class="qtyRow">
+                <div class="qty" aria-label="Quantidade">
+                  <button type="button" onclick="Cart.updateQty('${i.id}', ${i.qty - 1})">−</button>
+                  <span>${i.qty}</span>
+                  <button type="button" onclick="Cart.updateQty('${i.id}', ${i.qty + 1})">+</button>
+                </div>
+                <div class="price">${Util.money(i.total)}</div>
+              </div>
+            </div>
+          `).join("");
+
+          const canCheckout = Auth.currentUser() && details.length;
+
+          return `
+            <div class="cartList">${rows}</div>
+            <div class="split"><span>Subtotal</span><strong>${Util.money(totals.subtotal)}</strong></div>
+            <div class="split"><span>Taxa (7%)</span><strong>${Util.money(totals.taxa)}</strong></div>
+            <div class="split"><span>Total</span><strong>${Util.money(totals.total)}</strong></div>
+            <div class="hr"></div>
+            <button class="btn success full" type="button" ${canCheckout ? "" : "disabled"}
+              onclick="App.go('pagamento')">
+              Ir para pagamento
+            </button>
+            ${!Auth.currentUser() ? `<div class="help" style="margin-top:10px;">Faça login para finalizar a compra.</div>` : ""}
+          `;
+        };
+
+        document.getElementById("cartSide").innerHTML = cartHTML(false);
+        document.getElementById("cartDrawer").innerHTML = cartHTML(true);
+        document.getElementById("cartDrawerFooter").innerHTML = "";
+      },
+
+      setTitle(title, subtitle){
+        document.getElementById("screenTitle").textContent = title;
+        document.getElementById("screenSubtitle").textContent = subtitle;
+      },
+
+      render(){
+        App.renderHeader();
+        App.renderCart();
+
+        const view = document.getElementById("view");
+        const route = App.state.route;
+
+        if(route === "eventos") return Screens.eventos(view);
+        if(route === "cadastro") return Screens.cadastro(view);
+        if(route === "login") return Screens.login(view);
+        if(route === "ingressos") return Screens.ingressos(view, App.state.selectedEventId);
+        if(route === "pagamento") return Screens.pagamento(view);
+        if(route === "meus_ingressos") return Screens.meusIngressos(view);
+
+        App.state.route = "eventos";
+        return Screens.eventos(view);
+      }
+    };
+
+    const Screens = {
+      eventos(view){
+        App.setTitle("Eventos", "Escolha um evento e compre seus ingressos");
+        const events = Store.get("tf_events", []);
+        const user = Auth.currentUser();
+
+        const cards = events.map(ev => `
+          <article class="card">
+            <div class="cardTitle">
+              <h3>${ev.title}</h3>
+              <span class="badge">${Util.isPast(ev.date) ? "Já aconteceu" : "Em breve"}</span>
+            </div>
+            <div class="meta">
+              <span><i></i>${Util.fmtDate(ev.date)}</span>
+              <span><i></i>${ev.place}</span>
+            </div>
+            <div class="help">${ev.description}</div>
+            <div class="actions">
+              <button class="btn primary" type="button" onclick="App.go('ingressos', { eventId: '${ev.id}' })">
+                Ver ingressos
+              </button>
+              <button class="btn" type="button" onclick="App.toggleCart(true)">Abrir carrinho</button>
+            </div>
+            ${!user ? `<div class="notice" style="margin-top:6px;">Você está como visitante. Para pagar, faça <strong>login</strong> ou <strong>cadastro</strong>.</div>` : ""}
+          </article>
+        `).join("");
+
+        view.innerHTML = `
+          <div class="notice">
+            Dica: clique em <strong>Ver ingressos</strong>, escolha os tipos e adicione ao carrinho.
+            Depois finalize em <strong>pagamento</strong>.
+          </div>
+          <div class="hr"></div>
+          <div class="cards">${cards}</div>
+        `;
+      },
+
+      cadastro(view){
+        App.setTitle("Cadastro", "Crie sua conta para comprar ingressos");
+        view.innerHTML = `
+          <form class="form" id="signupForm">
+            <div class="field">
+              <label>Nome</label>
+              <input class="input" name="name" placeholder="Seu nome" autocomplete="name" />
+            </div>
+            <div class="field">
+              <label>E-mail</label>
+              <input class="input" name="email" placeholder="voce@email.com" autocomplete="email" />
+            </div>
+            <div class="field">
+              <label>Senha</label>
+              <input class="input" name="password" placeholder="Crie uma senha" type="password" autocomplete="new-password" />
+            </div>
+
+            <button class="btn primary" type="submit">Cadastrar</button>
+            <button class="btn" type="button" onclick="App.go('login')">Já tenho conta</button>
+
+            <div class="notice">
+              * Demo: a senha é salva no navegador (localStorage). Em projeto real, isso fica no back-end com hash.
+            </div>
+          </form>
+        `;
+
+        document.getElementById("signupForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const res = Auth.signup({ name: fd.get("name"), email: fd.get("email"), password: fd.get("password") });
+          App.renderHeader();
+          if(res.ok){ App.toast(res.msg, "ok"); App.go("eventos"); }
+          else App.toast(res.msg, "bad");
+        });
+      },
+
+      login(view){
+        App.setTitle("Login", "Acesse sua conta para finalizar a compra");
+        view.innerHTML = `
+          <form class="form" id="loginForm">
+            <div class="field">
+              <label>E-mail</label>
+              <input class="input" name="email" placeholder="voce@email.com" autocomplete="email" />
+            </div>
+            <div class="field">
+              <label>Senha</label>
+              <input class="input" name="password" placeholder="Sua senha" type="password" autocomplete="current-password" />
+            </div>
+
+            <button class="btn primary" type="submit">Entrar</button>
+            <button class="btn" type="button" onclick="App.go('cadastro')">Criar conta</button>
+
+            <div class="notice">
+              Para testar: crie uma conta no cadastro e depois faça login.
+            </div>
+          </form>
+        `;
+
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const res = Auth.login({ email: fd.get("email"), password: fd.get("password") });
+          App.renderHeader();
+          if(res.ok){ App.toast(res.msg, "ok"); App.go("eventos"); }
+          else App.toast(res.msg, "bad");
+        });
+      },
+
+      ingressos(view, eventId){
+        const events = Store.get("tf_events", []);
+        const ev = events.find(e => e.id === eventId) || events[0];
+        if(!ev) return App.go("eventos");
+
+        App.state.selectedEventId = ev.id;
+        App.setTitle("Escolher ingressos", `${ev.title} • ${Util.fmtDate(ev.date)} • ${ev.place}`);
+
+        const cards = ev.tickets.map(tk => `
+          <article class="card">
+            <div class="cardTitle">
+              <h3>${tk.name}</h3>
+              <span class="badge">${Util.money(tk.price)}</span>
+            </div>
+            <div class="help">Selecione a quantidade e adicione ao carrinho.</div>
+            <div class="actions">
+              <select class="input" id="qty_${tk.id}" style="max-width:140px;">
+                ${[1,2,3,4,5,6].map(n => `<option value="${n}">${n}x</option>`).join("")}
+              </select>
+              <button class="btn success" type="button" onclick="Cart.add({ eventId:'${ev.id}', ticketId:'${tk.id}', qty: document.getElementById('qty_${tk.id}').value })">
+                Adicionar
+              </button>
+              <button class="btn" type="button" onclick="App.toggleCart(true)">Ver carrinho</button>
+            </div>
+          </article>
+        `).join("");
+
+        view.innerHTML = `
+          <div class="notice">
+            <strong>${ev.title}</strong><br/>
+            ${ev.description}
+          </div>
+          <div class="hr"></div>
+          <div class="cards">${cards}</div>
+          <div class="hr"></div>
+          <div class="actions">
+            <button class="btn" type="button" onclick="App.go('eventos')">Voltar</button>
+            <button class="btn primary" type="button" onclick="App.go('pagamento')">Ir para pagamento</button>
+          </div>
+        `;
+      },
+
+      pagamento(view){
+        App.setTitle("Pagamento", "Finalize sua compra com segurança (simulação)");
+        const user = Auth.currentUser();
+        const details = Cart.details();
+        const totals = Cart.totals();
+
+        if(!details.length){
+          view.innerHTML = `
+            <div class="notice bad">Seu carrinho está vazio.</div>
+            <div class="hr"></div>
+            <button class="btn primary" type="button" onclick="App.go('eventos')">Ver eventos</button>
+          `;
+          return;
+        }
+
+        if(!user){
+          view.innerHTML = `
+            <div class="notice bad">Você precisa estar logado para pagar.</div>
+            <div class="hr"></div>
+            <div class="actions">
+              <button class="btn primary" type="button" onclick="App.go('login')">Ir para login</button>
+              <button class="btn" type="button" onclick="App.go('cadastro')">Criar conta</button>
+              <button class="btn" type="button" onclick="App.go('eventos')">Voltar</button>
+            </div>
+          `;
+          return;
+        }
+
+        const resumo = details.map(i => `
+          <div class="cartItem">
+            <div class="cartTop">
+              <div>
+                <strong>${i.event.title}</strong><br/>
+                <small>${i.ticket.name} • ${i.qty}x • ${Util.fmtDate(i.event.date)}</small>
+              </div>
+              <div class="price">${Util.money(i.total)}</div>
+            </div>
+          </div>
+        `).join("");
+
+        view.innerHTML = `
+          <div class="notice ok">
+            Você está comprando como <strong>${user.name}</strong> (${user.email}).
+          </div>
+          <div class="hr"></div>
+
+          <div class="ticketGroup">
+            <div class="panel" style="box-shadow:none;">
+              <div class="panelHeader"><h2>Resumo do pedido</h2><small>${details.length} item(ns)</small></div>
+              <div class="panelBody">
+                <div class="cartList">${resumo}</div>
+                <div class="split"><span>Subtotal</span><strong>${Util.money(totals.subtotal)}</strong></div>
+                <div class="split"><span>Taxa (7%)</span><strong>${Util.money(totals.taxa)}</strong></div>
+                <div class="split"><span>Total</span><strong>${Util.money(totals.total)}</strong></div>
+              </div>
+            </div>
+
+            <div class="panel" style="box-shadow:none;">
+              <div class="panelHeader"><h2>Dados do pagamento</h2><small>Cartão (demo)</small></div>
+              <div class="panelBody">
+                <form class="form" id="payForm">
+                  <div class="field">
+                    <label>Nome no cartão</label>
+                    <input class="input" name="cardName" placeholder="Como no cartão" autocomplete="cc-name" />
+                  </div>
+                  <div class="field">
+                    <label>Número do cartão</label>
+                    <input class="input" name="cardNumber" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric" />
+                  </div>
+                  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="field">
+                      <label>Validade</label>
+                      <input class="input" name="expiry" placeholder="MM/AA" autocomplete="cc-exp" />
+                    </div>
+                    <div class="field">
+                      <label>CVV</label>
+                      <input class="input" name="cvv" placeholder="123" autocomplete="cc-csc" inputmode="numeric" />
+                    </div>
+                  </div>
+
+                  <button class="btn success" type="submit">Pagar ${Util.money(totals.total)}</button>
+                  <button class="btn" type="button" onclick="App.go('eventos')">Continuar comprando</button>
+
+                  <div class="notice">
+                    Simulação: qualquer dados “válidos” (não vazios) aprovam a compra.
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("payForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const payment = {
+            cardName: String(fd.get("cardName") || "").trim(),
+            cardNumber: String(fd.get("cardNumber") || "").replace(/\s+/g,"").trim(),
+            expiry: String(fd.get("expiry") || "").trim(),
+            cvv: String(fd.get("cvv") || "").trim()
+          };
+
+          if(!payment.cardName || payment.cardNumber.length < 12 || !payment.expiry || payment.cvv.length < 3){
+            App.toast("Preencha os dados do pagamento corretamente.", "bad");
+            return;
+          }
+
+          const res = Orders.create({ userId: user.id, payment });
+          if(res.ok){ App.toast(res.msg, "ok"); App.go("meus_ingressos"); }
+          else App.toast(res.msg, "bad");
+        });
+      },
+
+      meusIngressos(view){
+        const user = Auth.currentUser();
+        App.setTitle("Meus ingressos", "Acompanhe seus eventos: próximos e passados");
+
+        if(!user){
+          view.innerHTML = `
+            <div class="notice bad">Você precisa estar logado para ver seus ingressos.</div>
+            <div class="hr"></div>
+            <div class="actions">
+              <button class="btn primary" type="button" onclick="App.go('login')">Login</button>
+              <button class="btn" type="button" onclick="App.go('cadastro')">Cadastro</button>
+            </div>
+          `;
+          return;
+        }
+
+        const orders = Orders.forUser(user.id);
+        const events = Store.get("tf_events", []);
+
+        const ticketsFlat = orders.flatMap(o => o.items.map(it => {
+          const ev = events.find(e => e.id === it.eventId);
+          const tk = ev ? ev.tickets.find(t => t.id === it.ticketId) : null;
+          return { orderId: o.id, boughtAt: o.createdAt, event: ev, ticket: tk, qty: it.qty, unit: it.unit };
+        })).filter(x => x.event && x.ticket);
+
+        const upcoming = ticketsFlat.filter(t => !Util.isPast(t.event.date));
+        const past = ticketsFlat.filter(t => Util.isPast(t.event.date));
+
+        const renderList = (list, emptyText, tagClass, tagTextFn) => {
+          if(!list.length) return `<div class="notice">${emptyText}</div>`;
+
+          return list.sort((a,b) => new Date(a.event.date) - new Date(b.event.date)).map(t => `
+            <div class="ticketItem">
+              <div class="ticketHeader">
+                <div>
+                  <strong>${t.event.title}</strong><br/>
+                  <small>${Util.fmtDate(t.event.date)} • ${t.event.place}</small>
+                </div>
+                <span class="tag ${tagClass}">${tagTextFn(t)}</span>
+              </div>
+
+              <div class="meta">
+                <span><i></i>${t.ticket.name} • ${t.qty}x</span>
+                <span><i></i>Comprado em: ${Util.fmtDate(t.boughtAt)}</span>
+                <span><i></i>Total: ${Util.money((t.unit || 0) * (t.qty || 0))}</span>
+              </div>
+
+              <div class="help">Pedido: ${t.orderId.slice(0, 12)}…</div>
+            </div>
+          `).join("");
+        };
+
+        view.innerHTML = `
+          <div class="notice ok">
+            Aqui ficam seus ingressos comprados. Separação automática por data do evento.
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="panel" style="box-shadow:none;">
+            <div class="panelHeader"><h2>Próximos eventos</h2><small>${upcoming.length} ingresso(s)</small></div>
+            <div class="panelBody">
+              ${renderList(upcoming, "Você ainda não tem eventos próximos.", "ok", () => "Próximo")}
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="panel" style="box-shadow:none;">
+            <div class="panelHeader"><h2>Eventos que já aconteceram</h2><small>${past.length} ingresso(s)</small></div>
+            <div class="panelBody">
+              ${renderList(past, "Você não tem eventos passados ainda.", "bad", () => "Encerrado")}
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <div class="actions">
+            <button class="btn primary" type="button" onclick="App.go('eventos')">Ver eventos</button>
+            <button class="btn" type="button" onclick="Cart.clear(); App.toast('Carrinho limpo.'); App.render();">Limpar carrinho</button>
+          </div>
+        `;
+      }
+    };
+
+    // Start
+    Seed.ensure();
+    App.render();
+  </script>
+</body>
+</html>
