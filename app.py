@@ -8,16 +8,11 @@ import os
 import uuid
 from datetime import datetime
 
-<<<<<<< HEAD
-=======
-# Carregar variáveis de ambiente do arquivo .env
->>>>>>> minha-alteracao
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-<<<<<<< HEAD
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -31,7 +26,6 @@ def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])
     return doc
 
-=======
 # Configuração da chave secreta
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
@@ -56,12 +50,10 @@ def serializar_doc(doc):
     return doc
 
 # Rota principal
->>>>>>> minha-alteracao
 @app.route("/")
 def home():
     return render_template("index.html")
 
-<<<<<<< HEAD
 @app.route("/seed-events", methods=["POST"])
 def seed_events():
     if events_collection.count_documents({}) > 0:
@@ -240,7 +232,7 @@ def get_tickets(email):
             tickets.append(ticket)
 
     return jsonify(tickets), 200
-=======
+
 # Rota para inserir eventos iniciais (seed)
 @app.route("/seed-eventos", methods=["POST"])
 def seed_eventos():
@@ -438,7 +430,6 @@ def listar_ingressos(email):
         return jsonify(ingressos), 200
     except Exception as e:
         return jsonify({"mensagem": f"Erro ao buscar ingressos: {e}"}), 500
->>>>>>> minha-alteracao
 
 if __name__ == "__main__":
     app.run(debug=True)
