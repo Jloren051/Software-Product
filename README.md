@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🎟️ Sistema de Venda de Ingressos
 
 Este projeto é uma aplicação web de venda de ingressos para eventos. Possui cadastro e login de usuários, compra de ingressos, gerenciamento de carrinho e visualização de ingressos comprados.  
