@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎟️ Sistema de Venda de Ingressos
 
 Este projeto é uma aplicação web de venda de ingressos para eventos. Possui cadastro e login de usuários, compra de ingressos, gerenciamento de carrinho e visualização de ingressos comprados.  
@@ -103,3 +104,6 @@ def test_usuarios():
     return {
         "usuarios": [ {"nome": u["nome"], "email": u["email"]} for u in usuarios ]
     }
+=======
+# Software-Product
+>>>>>>> minha-alteracao
